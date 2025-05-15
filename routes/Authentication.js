@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 
 const router = express.Router();
-const JWT_SECRET = 'secretkey';
+const JWT_SECRET = process.env.SECRET;
 
 router.post('/register', async (req,res)=>{
     console.log('Received');
@@ -20,17 +20,22 @@ router.post('/register', async (req,res)=>{
     res.json({message:'User registered successfully'});
 })
 
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
 
-router.post('/login',async (req,res)=>{
-    const {username,password} = req.body;
-    const user = await User.findOne({username});
-    if (!user) return res.status(400).json({message:"User doesn't exist!"})
+  try {
+    const user = await User.findOne({ username });
+    if (!user) return res.status(403).json({ message: "Invalid username or password" });
 
-    const isMatch = await bcrypt.compare(password,user.password);
-    if (!isMatch) return res.status(403).json({message:"Invalid credentials"})
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(403).json({ message: "Invalid username or password" });
 
-    const token = jwt.sign({ userId:user._id},JWT_SECRET)
-    res.json({message:'Login Successful', token})
-})
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '5h' });
+    res.json({ message: 'Login Successful', token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 module.exports = router
