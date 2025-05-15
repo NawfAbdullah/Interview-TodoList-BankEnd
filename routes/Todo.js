@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require('../models/User')
 const auth = require('../middleware/auth');
 const {v4:uuid} = require('uuid') 
-const { default: mongoose } = require('mongoose');
+const { mongoose } = require('mongoose');
 
 router.get('/',auth,async (req,res)=>{
     const user_id = req.user
